@@ -77,3 +77,36 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=150):
     barras_int = int(barras)
     
     return _ler_do_bunker(ativo_limpo, str(tempo_grafico), barras_int)
+
+# ==========================================
+# ROTINA DE EXECUÇÃO AUTOMÁTICA DO ROBÔ
+# ==========================================
+if __name__ == "__main__":
+    import os
+    try:
+        from config_ativos import bdrs_elite, ibrx_selecao
+        ativos_alvo = bdrs_elite + ibrx_selecao
+    except Exception as e:
+        print(f"Aviso: Não encontrou config_ativos.py. Tentando lista de emergência. Erro: {e}")
+        ativos_alvo = ['PETR4.SA', 'LILY34.SA', 'MUTC34.SA'] 
+
+    # Remove duplicados e limpa os nomes
+    ativos = list(set([a.replace('.SA', '') for a in ativos_alvo]))
+
+    print(f"Iniciando download de {len(ativos)} ativos...")
+
+    for ativo in ativos:
+        try:
+            # Chama a sua função original de puxar dados
+            df = puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500)
+            
+            if df is not None and not df.empty:
+                # Salva os dados como CSV na raiz do repositório
+                df.to_csv(f"{ativo}.csv")
+                print(f"✅ {ativo}.csv guardado!")
+            else:
+                print(f"⚠️ Sem dados para {ativo}.")
+        except Exception as e:
+            print(f"❌ Erro ao baixar {ativo}: {e}")
+            
+    print("Operação concluída com sucesso!")

@@ -1,0 +1,16 @@
+streamlit>=1.37.0
+pandas
+pandas-ta
+tradingview-datafeed
+yfinance
+requests
+plotly
+scikit-learn
+sqlalchemy
+pg8000
+st-supabase-connection
+tensorflow
+google-generativeai
+beautifulsoup4
+lxml
+curl_cffi>=0.7.0

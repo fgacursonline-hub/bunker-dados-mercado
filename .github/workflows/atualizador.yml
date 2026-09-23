@@ -1,0 +1,39 @@
+name: Robô de Dados do Bunker
+
+on:
+  schedule:
+    # Roda de 4 em 4 horas (ex: 10h, 14h, 18h...) de Segunda a Sexta
+    - cron: '0 */4 * * 1-5'
+  workflow_dispatch: # Permite ativar manualmente clicando num botão
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar-dados:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar o código
+      uses: actions/checkout@v4
+
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Instalar bibliotecas
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Ligar o Motor
+      run: python motor_dados.py
+
+    - name: Guardar os novos dados no Bunker (Commit & Push)
+      run: |
+        git config --global user.name "Bunker Bot"
+        git config --global user.email "bunkerbot@github.local"
+        git add .
+        git commit -m "Atualização automática de cotações" || echo "Sem novos dados para salvar"
+        git push

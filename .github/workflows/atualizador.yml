@@ -2,7 +2,8 @@ name: Robô de Dados do Bunker
 
 on:
   schedule:
-    - cron: "30 13,15,17,19 * * 1-5"
+    - cron: "0 12 * * 1-5"           # Dispara às 09:00 (Pronto às 09:30)
+    - cron: "30 13,15,17,18 * * 1-5" # Dispara às 10:30, 12:30, 14:30 e 15:30
   workflow_dispatch: # Permite ativar manualmente clicando num botão
 
 permissions:

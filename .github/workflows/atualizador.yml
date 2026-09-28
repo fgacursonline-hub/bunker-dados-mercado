@@ -2,8 +2,7 @@ name: Robô de Dados do Bunker
 
 on:
   schedule:
-    # Roda de 4 em 4 horas (ex: 10h, 14h, 18h...) de Segunda a Sexta
-    - cron: '0 */4 * * 1-5'
+    - cron: "30 13,15,17,19 * * 1-5"
   workflow_dispatch: # Permite ativar manualmente clicando num botão
 
 permissions:

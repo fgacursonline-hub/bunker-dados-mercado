@@ -3,18 +3,27 @@ import pandas as pd
 import os
 
 def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
-    """Função pura que vai à internet (Yahoo Finance) puxar os dados reais."""
+    """Função com estratégia em cascata para garantir que nenhum ativo falhe."""
     ativo_limpo = ativo.replace('.SA', '')
     ativo_yf = f"{ativo_limpo}.SA"
     
-    try:
-        ticker = yf.Ticker(ativo_yf)
-        # Puxa o histórico máximo disponível
-        df = ticker.history(period="max", interval=tempo_grafico)
-        
-        if df.empty:
-            return None
+    # Lista de tentativas de períodos do menor para o maior (ou vice-versa)
+    periodos_tentativa = ["2y", "max", "6mo", "1d"]
+    
+    df = None
+    for p in periodos_tentativa:
+        try:
+            ticker = yf.Ticker(ativo_yf)
+            df = ticker.history(period=p, interval=tempo_grafico)
+            if df is not None and not df.empty:
+                break # Conseguiu baixar, sai do loop!
+        except:
+            continue
             
+    if df is None or df.empty:
+        return None
+        
+    try:
         # Remove o fuso horário para evitar problemas de compatibilidade
         df.index = pd.to_datetime(df.index).tz_localize(None)
         
@@ -23,7 +32,7 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
         
         return df.tail(barras)
     except Exception as e:
-        print(f"Erro interno YFinance em {ativo_yf}: {e}")
+        print(f"Erro interno de formatação em {ativo_yf}: {e}")
         return None
 
 # ==========================================

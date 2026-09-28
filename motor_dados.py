@@ -31,8 +31,15 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
 # ==========================================
 if __name__ == "__main__":
     try:
-        from config_ativos import bdrs_elite, ibrx_selecao
-        ativos_alvo = bdrs_elite + ibrx_selecao
+        from config_ativos import bdrs_elite, ibrx_selecao, etfs_master
+        
+        # Extrair os tickers dos ETFs do dicionário etfs_master
+        lista_etfs = []
+        for categoria, etfs in etfs_master.items():
+            for ticker in etfs.keys():
+                lista_etfs.append(f"{ticker}.SA")
+                
+        ativos_alvo = bdrs_elite + ibrx_selecao + lista_etfs
     except Exception as e:
         print(f"Aviso: Não encontrou config_ativos.py. Erro: {e}")
         ativos_alvo = ['PETR4.SA', 'VALE3.SA'] 
@@ -40,7 +47,7 @@ if __name__ == "__main__":
     # Remove duplicados e padroniza os nomes
     ativos = list(set([a.replace('.SA', '') for a in ativos_alvo]))
 
-    print(f"Iniciando download de {len(ativos)} ativos diretamente da Bolsa...")
+    print(f"Iniciando download de {len(ativos)} ativos diretamente da Bolsa (incluindo ETFs)...")
 
     for ativo in ativos:
         try:

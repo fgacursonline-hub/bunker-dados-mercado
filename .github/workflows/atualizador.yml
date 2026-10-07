@@ -1,14 +1,11 @@
 name: Robô de Dados do Bunker
 
 on:
-  workflow_dispatch: # Permite apertar o botão de Play manualmente
+  workflow_dispatch:
   schedule:
-    # Horários em UTC (Soma 3 horas para Brasília)
-    # 13h (10h BRT - Abertura)
-    # 16h (13h BRT - Meio do Pregão)
-    # 20h (17h BRT - Fechamento B3)
-    # 21h (18h BRT - After-Market)
-    - cron: "0 13,16,20,21 * * 1-5"
+    # Rodando aos 30 minutos das: 13h, 15h, 17h, 19h e 21h (UTC)
+    # Equivalente a 10:30, 12:30, 14:30, 16:30 e 18:30 (Brasília)
+    - cron: "30 13,15,17,19,21 * * 1-5"
 
 permissions:
   contents: write
@@ -21,7 +18,7 @@ jobs:
     - name: Baixar o código
       uses: actions/checkout@v4
       with:
-        ref: main # OBRIGATÓRIO: Garante que o robô está na branch correta
+        ref: main 
 
     - name: Configurar Python
       uses: actions/setup-python@v5
@@ -40,8 +37,6 @@ jobs:
       run: |
         git config --global user.name "Bunker Bot"
         git config --global user.email "bunkerbot@cacadores.elite"
-        # Adiciona apenas os CSVs para evitar subir arquivos de lixo
         git add *.csv 
-        git commit -m "🤖 Atualização automática de cotações B3/EUA" || echo "Sem novos dados para salvar"
-        # Força o push especificando a origem e a branch
+        git commit -m "🤖 Atualização de cotações - Radar Caçadores de Elite" || echo "Sem novos dados para salvar"
         git push origin main

@@ -1,11 +1,15 @@
 name: Robô de Dados do Bunker
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Permite apertar o botão de Play manualmente
   schedule:
-    - cron: "30 12 * * 1-5"
-    - cron: "0 14,16,18,19 * * 1-5"
-    
+    # Horários em UTC (Soma 3 horas para Brasília)
+    # 13h (10h BRT - Abertura)
+    # 16h (13h BRT - Meio do Pregão)
+    # 20h (17h BRT - Fechamento B3)
+    # 21h (18h BRT - After-Market)
+    - cron: "0 13,16,20,21 * * 1-5"
+
 permissions:
   contents: write
 
@@ -16,6 +20,8 @@ jobs:
     steps:
     - name: Baixar o código
       uses: actions/checkout@v4
+      with:
+        ref: main # OBRIGATÓRIO: Garante que o robô está na branch correta
 
     - name: Configurar Python
       uses: actions/setup-python@v5
@@ -27,13 +33,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Ligar o Motor
+    - name: Ligar o Motor Quantitativo
       run: python motor_dados.py
 
     - name: Guardar os novos dados no Bunker (Commit & Push)
       run: |
         git config --global user.name "Bunker Bot"
-        git config --global user.email "bunkerbot@github.local"
-        git add .
-        git commit -m "Atualização automática de cotações" || echo "Sem novos dados para salvar"
-        git push
+        git config --global user.email "bunkerbot@cacadores.elite"
+        # Adiciona apenas os CSVs para evitar subir arquivos de lixo
+        git add *.csv 
+        git commit -m "🤖 Atualização automática de cotações B3/EUA" || echo "Sem novos dados para salvar"
+        # Força o push especificando a origem e a branch
+        git push origin main

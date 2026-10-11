@@ -2,10 +2,8 @@ name: Robô de Dados do Bunker
 
 on:
   workflow_dispatch:
-  schedule:
-    # Rodando aos 30 minutos das: 13h, 15h, 17h, 19h e 21h (UTC)
-    # Equivalente a 10:30, 12:30, 14:30, 16:30 e 18:30 (Brasília)
-    - cron: "30 13,15,17,19,21 * * 1-5"
+  repository_dispatch:
+    types: [acionar_robo_agora]
 
 permissions:
   contents: write

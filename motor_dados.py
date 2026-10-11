@@ -4,28 +4,36 @@ import os
 
 def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
     """
-    LEITURA INTELIGENTE:
-    - Se o ficheiro CSV já existe no cofre (gerado pelo robô), lê-o instantaneamente (para o Streamlit).
-    - Se não existir, vai à internet com estratégia em cascata (para o robô atualizar).
+    LEITURA INTELIGENTE COM RESAMPLING:
+    - Lê o CSV Diário local. Se o painel pedir Semanal/Mensal, funde os dias matematicamente.
+    - Se pedir Intraday, ignora o CSV e vai à net buscar os dados curtos.
     """
     ativo_limpo = str(ativo).replace('.SA', '').upper().strip()
     arquivo_csv = f"{ativo_limpo}.csv"
     
-    # 1. TENTA LER DO COFRE LOCAL (Prioridade máxima para o Streamlit)
+    # 1. TENTA LER DO COFRE LOCAL E CONVERTER TEMPOS GRÁFICOS
     if os.path.exists(arquivo_csv):
         try:
             df = pd.read_csv(arquivo_csv, index_col=0, parse_dates=True)
             if not df.empty:
                 df.index = pd.to_datetime(df.index).tz_localize(None)
                 df.columns = [str(c).capitalize() for c in df.columns]
+                
+                # MOTOR QUANTITATIVO: Agrupa dias para formar Semanas ou Meses
+                if tempo_grafico == "1wk":
+                    df = df.resample('W').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
+                elif tempo_grafico == "1mo":
+                    df = df.resample('ME').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
+                elif tempo_grafico in ["15m", "60m"]:
+                    # Intraday não existe no CSV, força a ir ao Yahoo Finance
+                    raise ValueError("Pular para Plano B")
+                    
                 return df.tail(barras)
         except Exception:
-            pass # Se houver qualquer falha na leitura local, tenta a internet como retaguarda
+            pass # Se falhar, passa para o plano de retaguarda
 
-    # 2. PLANO DE RETAGUARDA / INTERNET (Usado pelo robô do GitHub)
+    # 2. PLANO DE RETAGUARDA / INTERNET (Yahoo Finance)
     ativo_yf = f"{ativo_limpo}.SA"
-    
-    # CORREÇÃO: "max" é agora a prioridade zero para garantir o histórico profundo
     periodos_tentativa = ["max", "5y", "2y", "1d"]
     
     df = None
@@ -72,11 +80,10 @@ if __name__ == "__main__":
 
     for ativo in ativos:
         try:
-            # Aqui forçamos a busca externa para atualizar o CSV no GitHub
             ativo_yf = f"{ativo}.SA"
             df = None
             
-            # CORREÇÃO: "max" em primeiro lugar na varredura de gravação do CSV
+            # Baixa sempre em Diário e com histórico Máximo
             for p in ["max", "5y", "2y", "1d"]:
                 try:
                     df = yf.Ticker(ativo_yf).history(period=p, interval="1d")

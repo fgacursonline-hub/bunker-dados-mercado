@@ -24,7 +24,9 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
 
     # 2. PLANO DE RETAGUARDA / INTERNET (Usado pelo robô do GitHub)
     ativo_yf = f"{ativo_limpo}.SA"
-    periodos_tentativa = ["2y", "max", "6mo", "1d"]
+    
+    # CORREÇÃO: "max" é agora a prioridade zero para garantir o histórico profundo
+    periodos_tentativa = ["max", "5y", "2y", "1d"]
     
     df = None
     for p in periodos_tentativa:
@@ -66,14 +68,16 @@ if __name__ == "__main__":
 
     ativos = list(set([a.replace('.SA', '') for a in ativos_alvo]))
 
-    print(f"Iniciando atualização de {len(ativos)} ativos no cofre...")
+    print(f"Iniciando atualização de {len(ativos)} ativos no cofre com histórico MÁXIMO...")
 
     for ativo in ativos:
         try:
             # Aqui forçamos a busca externa para atualizar o CSV no GitHub
             ativo_yf = f"{ativo}.SA"
             df = None
-            for p in ["2y", "max", "6mo", "1d"]:
+            
+            # CORREÇÃO: "max" em primeiro lugar na varredura de gravação do CSV
+            for p in ["max", "5y", "2y", "1d"]:
                 try:
                     df = yf.Ticker(ativo_yf).history(period=p, interval="1d")
                     if df is not None and not df.empty:
@@ -91,4 +95,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Erro fatal ao salvar {ativo}: {e}")
             
-    print("Todas as operações concluídas com sucesso! Cofre atualizado.")
+    print("Todas as operações concluídas com sucesso! Cofre atualizado com histórico profundo.")

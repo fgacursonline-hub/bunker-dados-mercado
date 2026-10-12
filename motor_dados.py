@@ -6,7 +6,7 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
     """
     LEITURA INTELIGENTE COM RESAMPLING:
     - Lê o CSV Diário local. Se o painel pedir Semanal/Mensal, funde os dias matematicamente.
-    - Se pedir Intraday, ignora o CSV e vai à net buscar os dados curtos.
+    - Se pedir Intraday, ignora o CSV e vai à net buscar os dados com as limitações corretas.
     """
     ativo_limpo = str(ativo).replace('.SA', '').upper().strip()
     arquivo_csv = f"{ativo_limpo}.csv"
@@ -23,19 +23,30 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
                 if tempo_grafico == "1wk":
                     df = df.resample('W').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
                 elif tempo_grafico == "1mo":
-                    df = df.resample('ME').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
+                    # Tenta a regra do Pandas moderno ('ME'), se falhar usa a regra clássica ('M')
+                    try:
+                        df = df.resample('ME').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
+                    except:
+                        df = df.resample('M').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
                 elif tempo_grafico in ["15m", "60m"]:
-                    # Intraday não existe no CSV, força a ir ao Yahoo Finance
+                    # Intraday não existe no CSV, força a ir à internet buscar dados frescos
                     raise ValueError("Pular para Plano B")
                     
                 return df.tail(barras)
         except Exception:
-            pass # Se falhar, passa para o plano de retaguarda
+            pass # Se falhar a montagem do mensal/semanal, passa para a internet
 
     # 2. PLANO DE RETAGUARDA / INTERNET (Yahoo Finance)
     ativo_yf = f"{ativo_limpo}.SA"
-    periodos_tentativa = ["max", "5y", "2y", "1d"]
     
+    # AJUSTE INTELIGENTE DE PERÍODO: Impede que a API bloqueie os pedidos Intraday
+    if tempo_grafico == "15m":
+        periodos_tentativa = ["60d", "1mo", "5d"]
+    elif tempo_grafico == "60m":
+        periodos_tentativa = ["730d", "1y", "6mo"]
+    else:
+        periodos_tentativa = ["max", "10y", "5y", "2y"]
+        
     df = None
     for p in periodos_tentativa:
         try:
@@ -83,8 +94,8 @@ if __name__ == "__main__":
             ativo_yf = f"{ativo}.SA"
             df = None
             
-            # Baixa sempre em Diário e com histórico Máximo
-            for p in ["max", "5y", "2y", "1d"]:
+            # Baixa sempre em Diário e com histórico Máximo para montar o Bunker forte
+            for p in ["max", "10y", "5y", "2y"]:
                 try:
                     df = yf.Ticker(ativo_yf).history(period=p, interval="1d")
                     if df is not None and not df.empty:

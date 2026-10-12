@@ -4,9 +4,8 @@ import os
 
 def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
     """
-    LEITURA INTELIGENTE COM RESAMPLING:
-    - Lê o CSV Diário local. Se o painel pedir Semanal/Mensal, funde os dias matematicamente.
-    - Se pedir Intraday, ignora o CSV e vai à net buscar os dados com as limitações corretas.
+    LEITURA INTELIGENTE MATEMÁTICA:
+    - Lê o CSV Diário local. Se o painel pedir Semanal/Mensal, funde os dias matematicamente na unha.
     """
     ativo_limpo = str(ativo).replace('.SA', '').upper().strip()
     arquivo_csv = f"{ativo_limpo}.csv"
@@ -16,36 +15,34 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
         try:
             df = pd.read_csv(arquivo_csv, index_col=0, parse_dates=True)
             if not df.empty:
-                df.index = pd.to_datetime(df.index).tz_localize(None)
-                df.columns = [str(c).capitalize() for c in df.columns]
+                df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
+                df.columns = [str(c).strip().capitalize() for c in df.columns]
                 
-                # MOTOR QUANTITATIVO: Agrupa dias para formar Semanas ou Meses
+                # MOTOR QUANTITATIVO BLINDADO: Agrupa dias matematicamente sem usar 'resample'
+                agg_dict = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last'}
+                
                 if tempo_grafico == "1wk":
-                    df = df.resample('W').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
+                    # Agrupa por Ano e Semana do Ano
+                    df['Group'] = df.index.strftime('%Y-%W')
+                    df_grouped = df.groupby('Group').agg(agg_dict)
+                    df_grouped.index = df.groupby('Group').apply(lambda x: x.index.max()).values
+                    df = df_grouped.sort_index()
+                    
                 elif tempo_grafico == "1mo":
-                    # Tenta a regra do Pandas moderno ('ME'), se falhar usa a regra clássica ('M')
-                    try:
-                        df = df.resample('ME').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
-                    except:
-                        df = df.resample('M').agg({'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}).dropna()
-                elif tempo_grafico in ["15m", "60m"]:
-                    # Intraday não existe no CSV, força a ir à internet buscar dados frescos
-                    raise ValueError("Pular para Plano B")
+                    # Agrupa por Ano e Mês
+                    df['Group'] = df.index.strftime('%Y-%m')
+                    df_grouped = df.groupby('Group').agg(agg_dict)
+                    # A data de cada vela mensal será o último dia do mês encontrado na base
+                    df_grouped.index = df.groupby('Group').apply(lambda x: x.index.max()).values
+                    df = df_grouped.sort_index()
                     
                 return df.tail(barras)
-        except Exception:
-            pass # Se falhar a montagem do mensal/semanal, passa para a internet
+        except Exception as e:
+            print(f"Aviso: Falha na conversão local de {ativo} -> {e}")
 
     # 2. PLANO DE RETAGUARDA / INTERNET (Yahoo Finance)
     ativo_yf = f"{ativo_limpo}.SA"
-    
-    # AJUSTE INTELIGENTE DE PERÍODO: Impede que a API bloqueie os pedidos Intraday
-    if tempo_grafico == "15m":
-        periodos_tentativa = ["60d", "1mo", "5d"]
-    elif tempo_grafico == "60m":
-        periodos_tentativa = ["730d", "1y", "6mo"]
-    else:
-        periodos_tentativa = ["max", "10y", "5y", "2y"]
+    periodos_tentativa = ["max", "10y", "5y", "2y"]
         
     df = None
     for p in periodos_tentativa:
@@ -61,11 +58,10 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
         return None
         
     try:
-        df.index = pd.to_datetime(df.index).tz_localize(None)
-        df.columns = [str(c).capitalize() for c in df.columns]
+        df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
+        df.columns = [str(c).strip().capitalize() for c in df.columns]
         return df.tail(barras)
-    except Exception as e:
-        print(f"Erro interno de formatação em {ativo_yf}: {e}")
+    except Exception:
         return None
 
 # ==========================================
@@ -73,20 +69,12 @@ def puxar_dados_blindados(ativo, tempo_grafico="1d", barras=1500):
 # ==========================================
 if __name__ == "__main__":
     try:
-        from config_ativos import bdrs_elite, ibrx_selecao, etfs_master
-        
-        lista_etfs = []
-        for categoria, etfs in etfs_master.items():
-            for ticker in etfs.keys():
-                lista_etfs.append(f"{ticker}.SA")
-                
-        ativos_alvo = bdrs_elite + ibrx_selecao + lista_etfs
-    except Exception as e:
-        print(f"Aviso: Não encontrou config_ativos.py. Erro: {e}")
+        from config_ativos import bdrs_elite, ibrx_selecao
+        ativos_alvo = bdrs_elite + ibrx_selecao
+    except Exception:
         ativos_alvo = ['PETR4.SA', 'VALE3.SA'] 
 
     ativos = list(set([a.replace('.SA', '') for a in ativos_alvo]))
-
     print(f"Iniciando atualização de {len(ativos)} ativos no cofre com histórico MÁXIMO...")
 
     for ativo in ativos:
@@ -94,7 +82,6 @@ if __name__ == "__main__":
             ativo_yf = f"{ativo}.SA"
             df = None
             
-            # Baixa sempre em Diário e com histórico Máximo para montar o Bunker forte
             for p in ["max", "10y", "5y", "2y"]:
                 try:
                     df = yf.Ticker(ativo_yf).history(period=p, interval="1d")
@@ -104,8 +91,8 @@ if __name__ == "__main__":
                     continue
             
             if df is not None and not df.empty:
-                df.index = pd.to_datetime(df.index).tz_localize(None)
-                df.columns = [str(c).capitalize() for c in df.columns]
+                df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
+                df.columns = [str(c).strip().capitalize() for c in df.columns]
                 df.to_csv(f"{ativo}.csv")
                 print(f"✅ {ativo}.csv guardado com sucesso!")
             else:
@@ -113,4 +100,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Erro fatal ao salvar {ativo}: {e}")
             
-    print("Todas as operações concluídas com sucesso! Cofre atualizado com histórico profundo.")
+    print("Cofre atualizado com sucesso!")

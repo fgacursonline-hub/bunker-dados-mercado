@@ -1,6 +1,9 @@
 name: Robô de Dados do Bunker
 
 on:
+  schedule:
+    # Roda a cada hora (no minuto 0). Pode manter o cron-job.org também como backup.
+    - cron: '0 * * * *'
   workflow_dispatch:
   repository_dispatch:
     types: [acionar_robo_agora]

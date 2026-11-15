@@ -7,11 +7,11 @@ import time
 from datetime import datetime, timedelta, timezone
 import os
 
-# Importa as listas do seu arquivo de configuração
+# Importa as listas do seu ficheiro de configuração
 try:
     from config_ativos import bdrs_elite, ibrx_selecao, bdr_setup_home, etfs_master
 except ImportError:
-    print("Aviso: config_ativos.py não encontrado. Usando listas vazias para evitar quebra.")
+    print("Aviso: config_ativos.py não encontrado. Utilizando listas vazias para evitar erros.")
     bdrs_elite, ibrx_selecao, bdr_setup_home, etfs_master = [], [], {}, {}
 
 def registrar_log(mensagem):
@@ -19,7 +19,7 @@ def registrar_log(mensagem):
     print(f"[{agora}] {mensagem}")
 
 def atualizar_banco_central():
-    registrar_log("Atualizando Banco Central (Selic/IPCA)...")
+    registrar_log("A atualizar Banco Central (Selic/IPCA)...")
     try:
         r = requests.get("https://brasilapi.com.br/api/taxas/v1", timeout=10)
         selic, ipca_12m = 0.0, 0.0
@@ -43,7 +43,7 @@ def atualizar_banco_central():
         registrar_log(f"Erro BCB: {e}")
 
 def atualizar_noticias():
-    registrar_log("Baixando Notícias (RSS)...")
+    registrar_log("A descarregar Notícias (RSS)...")
     fontes = {
         "InfoMoney": "https://www.infomoney.com.br/feed/",
         "Investing": "https://br.investing.com/rss/news_25.rss",
@@ -69,15 +69,15 @@ def atualizar_noticias():
                 if contador >= 8: break
             time.sleep(1)
         except Exception as e:
-            registrar_log(f"Erro ao baixar {nome}: {e}")
+            registrar_log(f"Erro ao descarregar {nome}: {e}")
             
     if todas_noticias:
         pd.DataFrame(todas_noticias).to_csv("bunker_noticias.csv", index=False)
 
 def atualizar_after_market_e_macro():
-    registrar_log("Lendo After-Market e Macro (TradingView)...")
+    registrar_log("A ler After-Market e Macro (TradingView)...")
     try:
-        # Inicializa como Guest para evitar bloqueios de login no GitHub
+        # Inicializa o TradingView (Guest Mode)
         tv = TvDatafeed()
     except Exception as e:
         registrar_log(f"Falha ao iniciar TVDatafeed: {e}")
@@ -113,9 +113,58 @@ def atualizar_after_market_e_macro():
             
     if ls_after:
         pd.DataFrame(ls_after).to_csv("bunker_after_market.csv", index=False)
+        registrar_log("bunker_after_market.csv gerado com sucesso.")
+
+    # 2. Atualizar Macro Global
+    macros = {
+        'IBOV': {'symbol': 'IBOV', 'exchange': 'BMFBOVESPA', 'nome': 'IBOVESPA', 'prefix': 'pts', 'formato': '{:,.0f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AIBOV'},
+        'WIN': {'symbol': 'WIN1!', 'exchange': 'BMFBOVESPA', 'nome': 'Mini Índice', 'prefix': 'pts', 'formato': '{:,.0f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWIN1%21'},
+        'WDO': {'symbol': 'WDO1!', 'exchange': 'BMFBOVESPA', 'nome': 'Mini Dólar', 'prefix': 'R$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWDO1%21'},
+        'DI1': {'symbol': 'DI11!', 'exchange': 'BMFBOVESPA', 'nome': 'Juros BR (DI1)', 'prefix': '%', 'formato': '{:.3f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3ADI11%21'},
+        'EWZ': {'symbol': 'EWZ', 'exchange': 'AMEX', 'nome': 'EWZ (ETF Brasil)', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=AMEX%3AEWZ'},
+        'MINERIO': {'symbol': 'FEF2!', 'exchange': 'SGX', 'nome': 'Minério de Ferro', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=SGX%3AFEF2%21'},
+        'BRENT': {'symbol': 'BRN1!', 'exchange': 'ICEEUR', 'nome': 'Petróleo Brent', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=ICEEUR%3ABRN1%21'},
+        'GOLD': {'symbol': 'XAUUSD', 'exchange': 'OANDA', 'nome': 'Ouro (Spot)', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=OANDA%3AXAUUSD'},
+        'BTC': {'symbol': 'BTCUSD', 'exchange': 'BITSTAMP', 'nome': 'Bitcoin (BTC)', 'prefix': '$', 'formato': '{:,.0f}', 'url': 'https://br.tradingview.com/chart/?symbol=BITSTAMP%3ABTCUSD'},
+        'VIX': {'symbol': 'VIX', 'exchange': 'CBOE', 'nome': 'Índice VIX (Medo)', 'prefix': 'pts', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CBOE%3AVIX', 'help': '**VIX Americano**...'},
+        'US10Y': {'symbol': 'US10Y', 'exchange': 'TVC', 'nome': 'Treasury 10Y (EUA)', 'prefix': '%', 'formato': '{:.3f}', 'url': 'https://br.tradingview.com/chart/?symbol=TVC%3AUS10Y', 'help': '**Títulos do Tesouro**...'},
+        'DXY': {'symbol': 'DXY', 'exchange': 'TVC', 'nome': 'DXY (Índice Dólar)', 'prefix': 'pts', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=TVC%3ADXY', 'help': '**Força do Dólar**...'},
+        'SP500F': {'symbol': 'US500', 'exchange': 'CAPITALCOM', 'nome': 'S&P 500 (CFD)', 'prefix': 'pts', 'formato': '{:,.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS500', 'help': '**S&P 500**...'},
+        'NASF': {'symbol': 'US100', 'exchange': 'CAPITALCOM', 'nome': 'Nasdaq (CFD)', 'prefix': 'pts', 'formato': '{:,.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS100', 'help': '**Nasdaq**...'},
+        'VXBR': {'symbol': 'VXEWZ', 'exchange': 'CBOE', 'nome': 'VIX Brasil (VXEWZ)', 'prefix': 'pts', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CBOE%3AVXEWZ', 'help': '**VIX Brasil**...'}
+    }
+    
+    resultados = []
+    for chave, config in macros.items():
+        try:
+            df_diario = tv.get_hist(symbol=config['symbol'], exchange=config['exchange'], interval=Interval.in_daily, n_bars=2)
+            if df_diario is not None and len(df_diario) >= 2:
+                fecho_ontem = df_diario['close'].iloc[-2]
+                df_ext = tv.get_hist(symbol=config['symbol'], exchange=config['exchange'], interval=Interval.in_15_minute, n_bars=2, extended_session=True)
+                
+                if df_ext is not None and not df_ext.empty:
+                    fecho_hj = df_ext['close'].iloc[-1]
+                else:
+                    fecho_hj = df_diario['close'].iloc[-1]
+                    
+                variacao = ((fecho_hj - fecho_ontem) / fecho_ontem) * 100
+                valor_formatado = f"{config['prefix']} " + config['formato'].format(fecho_hj)
+                
+                resultados.append({
+                    'nome': config['nome'], 'valor': valor_formatado, 
+                    'variacao': variacao, 'url': config['url'], 
+                    'help': config.get('help', '')
+                })
+        except Exception as e:
+            registrar_log(f"Erro Macro {config['symbol']}: {e}")
+        time.sleep(0.5)
+        
+    if resultados:
+        pd.DataFrame(resultados).to_csv("bunker_macro.csv", index=False)
+        registrar_log("bunker_macro.csv gerado com sucesso.")
 
 def atualizar_cotacoes_b3():
-    registrar_log("Atualizando históricos diários da B3 via YFinance...")
+    registrar_log("A atualizar históricos diários da B3 via YFinance...")
     todos_ativos = list(set([a.replace('.SA', '') for a in (bdrs_elite + ibrx_selecao)]))
     
     for cat in etfs_master.values():
@@ -135,7 +184,7 @@ def atualizar_cotacoes_b3():
             registrar_log(f"Erro ao atualizar {ativo}: {e}")
 
 if __name__ == "__main__":
-    registrar_log("=== INICIANDO TURNO DO OPERÁRIO OFFLINE ===")
+    registrar_log("=== A INICIAR TURNO DO OPERÁRIO OFFLINE ===")
     atualizar_banco_central()
     atualizar_noticias()
     atualizar_after_market_e_macro()

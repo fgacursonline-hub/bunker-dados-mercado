@@ -29,7 +29,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Ligar o Motor Quantitativo
-      run: python motor_dados.py
+      run: python atualizador.py
 
     - name: Guardar os novos dados no Bunker (Commit & Push)
       run: |

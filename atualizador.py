@@ -140,34 +140,33 @@ def atualizar_after_market_e_macro():
     if resultados: pd.DataFrame(resultados).to_csv("bunker_macro.csv", index=False)
 
 def atualizar_cotacoes_b3():
-    registrar_log("A atualizar B3 (Modo Incremental Inteligente)...")
+    registrar_log("A atualizar B3 (Reconstrução Completa para ajuste de Proventos)...")
     todos_ativos = list(set([a.replace('.SA', '') for a in (bdrs_elite + ibrx_selecao)]))
     for cat in etfs_master.values(): todos_ativos.extend(list(cat.keys()))
     todos_ativos = list(set(todos_ativos))
     
+    # Criamos uma sessão com identidade de navegador real para o Yahoo não bloquear o IP do GitHub
+    sessao_yf = requests.Session()
+    sessao_yf.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    })
+    
     for ativo in todos_ativos:
         try:
             nome_arquivo = f"{ativo}.csv"
-            # Se o CSV já existe, puxa apenas 5 dias do Yahoo para poupar a API
-            if os.path.exists(nome_arquivo):
-                df_antigo = pd.read_csv(nome_arquivo, index_col=0, parse_dates=True)
-                df_novo = yf.Ticker(f"{ativo}.SA").history(period="5d", interval="1d")
-                if not df_novo.empty:
-                    df_novo.index = pd.to_datetime(df_novo.index, utc=True).tz_localize(None)
-                    df_novo.columns = [str(c).strip().capitalize() for c in df_novo.columns]
-                    # Combina e remove os dias duplicados, mantendo o mais recente
-                    df_atualizado = pd.concat([df_antigo, df_novo]).dropna(subset=['Close'])
-                    df_atualizado = df_atualizado[~df_atualizado.index.duplicated(keep='last')].sort_index()
-                    df_atualizado.to_csv(nome_arquivo)
-            else:
-                # Se for a primeira vez (ou se o CSV foi apagado), puxa 2 anos
-                df_novo = yf.Ticker(f"{ativo}.SA").history(period="2y", interval="1d")
-                if not df_novo.empty:
-                    df_novo.index = pd.to_datetime(df_novo.index, utc=True).tz_localize(None)
-                    df_novo.columns = [str(c).strip().capitalize() for c in df_novo.columns]
-                    df_novo.to_csv(nome_arquivo)
-                    
-            time.sleep(0.2) 
+            
+            # Baixa os 2 anos completos para reprocessar desdobramentos e dividendos retroativos
+            ticker = yf.Ticker(f"{ativo}.SA", session=sessao_yf)
+            df_novo = ticker.history(period="2y", interval="1d")
+            
+            if not df_novo.empty:
+                df_novo.index = pd.to_datetime(df_novo.index, utc=True).tz_localize(None)
+                df_novo.columns = [str(c).strip().capitalize() for c in df_novo.columns]
+                # Sobrescreve o arquivo para manter a fidelidade quantitativa
+                df_novo.to_csv(nome_arquivo)
+                
+            # Pausa cirúrgica de 0.5s: Dá ~50 segundos para baixar 100 ativos. Extremamente seguro.
+            time.sleep(0.5) 
         except Exception as e:
             registrar_log(f"Erro ao descarregar {ativo}", erro=True)
 

@@ -2,8 +2,8 @@ name: Robô de Dados do Bunker
 
 on:
   schedule:
-    # Roda a cada hora (no minuto 0). Pode manter o cron-job.org também como backup.
-    - cron: '0 * * * *'
+    # Foge do tráfego do minuto zero (Roda aos 17 minutos de cada hora)
+    - cron: '17 * * * *'
   workflow_dispatch:
   repository_dispatch:
     types: [acionar_robo_agora]
@@ -11,9 +11,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: bunker-atualizacao
+  cancel-in-progress: false
+
 jobs:
   atualizar-dados:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
     - name: Baixar o código
@@ -34,10 +39,16 @@ jobs:
     - name: Ligar o Motor Quantitativo
       run: python atualizador.py
 
-    - name: Guardar os novos dados no Bunker (Commit & Push)
+    - name: Publicar CSVs no Bunker
       run: |
-        git config --global user.name "Bunker Bot"
-        git config --global user.email "bunkerbot@cacadores.elite"
-        git add *.csv 
-        git commit -m "🤖 Atualização de cotações - Radar Caçadores de Elite" || echo "Sem novos dados para salvar"
-        git push origin main
+        git config user.name "Bunker Bot"
+        git config user.email "bunkerbot@cacadores.elite"
+        git add -- '*.csv'
+        
+        # Só faz o commit se houver mudanças reais nos ficheiros
+        if git diff --cached --quiet; then
+          echo "Nenhum dado novo. Ignorando commit."
+        else
+          git commit -m "🤖 Atualização de cotações - Radar Caçadores de Elite"
+          git push origin HEAD:main
+        fi

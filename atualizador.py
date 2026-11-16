@@ -34,7 +34,6 @@ def atualizar_banco_central():
             ipca_12m = next((float(t['valor']) for t in dados if t['nome'] == 'IPCA'), 0.0)
             
             hoje = datetime.now().date()
-            # Calendário prolongado (2026 e 2027)
             reunioes_copom = [
                 datetime(2026, 1, 28).date(), datetime(2026, 3, 18).date(), datetime(2026, 4, 29).date(),
                 datetime(2026, 6, 17).date(), datetime(2026, 8, 5).date(), datetime(2026, 9, 16).date(),
@@ -88,15 +87,13 @@ def atualizar_after_market_e_macro():
         registrar_log(f"Falha de login TV: {e}", erro=True)
         return
 
-    # 1. After Market Otimizado (Correção de Lógica)
+    # 1. After Market Otimizado
     ls_after = []
     for bdr, info in bdr_setup_home.items():
         try:
-            # Puxa barras horárias para encontrar a diferença exata entre regular e estendida
             df = tv.get_hist(symbol=info['us'], exchange=info['exchange'], interval=Interval.in_1_hour, n_bars=24, extended_session=True)
             if df is not None and len(df) > 5:
                 fecho_hj = df['close'].iloc[-1]
-                # Estima o último fechamento regular filtrando os horários comerciais
                 df_reg = tv.get_hist(symbol=info['us'], exchange=info['exchange'], interval=Interval.in_daily, n_bars=2)
                 fecho_ontem = df_reg['close'].iloc[-1] if not df_reg.empty else fecho_hj
                 
@@ -112,13 +109,23 @@ def atualizar_after_market_e_macro():
             
     if ls_after: pd.DataFrame(ls_after).to_csv("bunker_after_market.csv", index=False)
 
-    # 2. Macro (Correção idêntica de fechamento)
+    # 2. Macro (OS 15 ATIVOS ORIGINAIS RESTAURADOS)
     macros = {
-        'IBOV': {'symbol': 'IBOV', 'exchange': 'BMFBOVESPA', 'nome': 'IBOVESPA', 'prefix': 'pts', 'formato': '{:,.0f}', 'url': '...'},
-        'WIN': {'symbol': 'WIN1!', 'exchange': 'BMFBOVESPA', 'nome': 'Mini Índice', 'prefix': 'pts', 'formato': '{:,.0f}', 'url': '...'},
-        'WDO': {'symbol': 'WDO1!', 'exchange': 'BMFBOVESPA', 'nome': 'Mini Dólar', 'prefix': 'R$', 'formato': '{:.2f}', 'url': '...'},
-        'US10Y': {'symbol': 'US10Y', 'exchange': 'TVC', 'nome': 'Treasury 10Y', 'prefix': '%', 'formato': '{:.3f}', 'url': '...'},
-        'SP500F': {'symbol': 'US500', 'exchange': 'CAPITALCOM', 'nome': 'S&P 500', 'prefix': 'pts', 'formato': '{:,.2f}', 'url': '...'}
+        'IBOV': {'symbol': 'IBOV', 'exchange': 'BMFBOVESPA', 'nome': 'IBOVESPA', 'prefix': 'pts', 'formato': '{:,.0f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AIBOV'},
+        'WIN': {'symbol': 'WIN1!', 'exchange': 'BMFBOVESPA', 'nome': 'Mini Índice', 'prefix': 'pts', 'formato': '{:,.0f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWIN1%21'},
+        'WDO': {'symbol': 'WDO1!', 'exchange': 'BMFBOVESPA', 'nome': 'Mini Dólar', 'prefix': 'R$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWDO1%21'},
+        'DI1': {'symbol': 'DI11!', 'exchange': 'BMFBOVESPA', 'nome': 'Juros BR (DI1)', 'prefix': '%', 'formato': '{:.3f}', 'url': 'https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3ADI11%21'},
+        'EWZ': {'symbol': 'EWZ', 'exchange': 'AMEX', 'nome': 'EWZ (ETF Brasil)', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=AMEX%3AEWZ'},
+        'MINERIO': {'symbol': 'FEF2!', 'exchange': 'SGX', 'nome': 'Minério de Ferro', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=SGX%3AFEF2%21'},
+        'BRENT': {'symbol': 'BRN1!', 'exchange': 'ICEEUR', 'nome': 'Petróleo Brent', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=ICEEUR%3ABRN1%21'},
+        'GOLD': {'symbol': 'XAUUSD', 'exchange': 'OANDA', 'nome': 'Ouro (Spot)', 'prefix': '$', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=OANDA%3AXAUUSD'},
+        'BTC': {'symbol': 'BTCUSD', 'exchange': 'BITSTAMP', 'nome': 'Bitcoin (BTC)', 'prefix': '$', 'formato': '{:,.0f}', 'url': 'https://br.tradingview.com/chart/?symbol=BITSTAMP%3ABTCUSD'},
+        'VIX': {'symbol': 'VIX', 'exchange': 'CBOE', 'nome': 'Índice VIX (Medo)', 'prefix': 'pts', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CBOE%3AVIX', 'help': '**VIX Americano (S&P 500)**\n\n• **Menos de 20 pontos:** Baixa volatilidade. Céu limpo.\n• **20 a 30 pontos:** Média volatilidade. Cautela.\n• **Acima de 30 pontos:** Pânico. Risco alto.'},
+        'US10Y': {'symbol': 'US10Y', 'exchange': 'TVC', 'nome': 'Treasury 10Y (EUA)', 'prefix': '%', 'formato': '{:.3f}', 'url': 'https://br.tradingview.com/chart/?symbol=TVC%3AUS10Y', 'help': '**Títulos do Tesouro dos EUA (10 Anos)**\nSe a taxa subir muito, o capital foge do Brasil para os EUA (Renda Fixa segura), derrubando a nossa bolsa.'},
+        'DXY': {'symbol': 'DXY', 'exchange': 'TVC', 'nome': 'DXY (Índice Dólar)', 'prefix': 'pts', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=TVC%3ADXY', 'help': '**Força Global do Dólar**\nÍndice do Dólar contra moedas fortes. DXY em alta significa Dólar ganhando poder, o que afunda as commodities e pressiona mercados emergentes.'},
+        'SP500F': {'symbol': 'US500', 'exchange': 'CAPITALCOM', 'nome': 'S&P 500 (CFD)', 'prefix': 'pts', 'formato': '{:,.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS500', 'help': '**S&P 500 (SPX)**\nO termômetro chefe do mundo. Indica o humor e a tendência do apetite a risco do mercado global antes mesmo de Nova York abrir.'},
+        'NASF': {'symbol': 'US100', 'exchange': 'CAPITALCOM', 'nome': 'Nasdaq (CFD)', 'prefix': 'pts', 'formato': '{:,.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS100', 'help': '**Nasdaq (NDX)**\nBolsa de tecnologia. Fortemente penalizada quando o Treasury 10Y sobe. É o motor da especulação de Wall Street.'},
+        'VXBR': {'symbol': 'VXEWZ', 'exchange': 'CBOE', 'nome': 'VIX Brasil (VXEWZ)', 'prefix': 'pts', 'formato': '{:.2f}', 'url': 'https://br.tradingview.com/chart/?symbol=CBOE%3AVXEWZ', 'help': '**Leitura Tática de Cenário (VIX Brasil):**\n\n• **IBOV caindo + VIX Brasil subindo:** Alerta de risco\n• **IBOV subindo + VIX Brasil caindo:** Ambiente mais favorável\n• **IBOV parado + VIX Brasil subindo:** Mercado se protegendo, cuidado\n• **VIX Brasil muito baixo:** Mercado complacente, risco de susto.'}
     }
     
     resultados = []
@@ -131,7 +138,7 @@ def atualizar_after_market_e_macro():
                 var = ((fecho_atual / fecho_anterior) - 1) * 100
                 resultados.append({
                     'nome': config['nome'], 'valor': f"{config['prefix']} {config['formato'].format(fecho_atual)}", 
-                    'variacao': var, 'url': config['url']
+                    'variacao': var, 'url': config['url'], 'help': config.get('help', '')
                 })
         except Exception as e:
             registrar_log(f"Erro Macro {config['symbol']}", erro=True)
@@ -140,12 +147,12 @@ def atualizar_after_market_e_macro():
     if resultados: pd.DataFrame(resultados).to_csv("bunker_macro.csv", index=False)
 
 def atualizar_cotacoes_b3():
-    registrar_log("A atualizar B3 (Reconstrução Completa para ajuste de Proventos)...")
+    registrar_log("A atualizar B3 (Reconstrução Completa 5 anos para ajuste de Proventos)...")
     todos_ativos = list(set([a.replace('.SA', '') for a in (bdrs_elite + ibrx_selecao)]))
     for cat in etfs_master.values(): todos_ativos.extend(list(cat.keys()))
     todos_ativos = list(set(todos_ativos))
     
-    # Criamos uma sessão com identidade de navegador real para o Yahoo não bloquear o IP do GitHub
+    # Criação da sessão que imita o navegador Chrome (Evita bloqueio do Yahoo)
     sessao_yf = requests.Session()
     sessao_yf.headers.update({
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -155,17 +162,15 @@ def atualizar_cotacoes_b3():
         try:
             nome_arquivo = f"{ativo}.csv"
             
-            # Baixa os 2 anos completos para reprocessar desdobramentos e dividendos retroativos
+            # ATUALIZADO PARA 5 ANOS ("5y") COMO SOLICITADO
             ticker = yf.Ticker(f"{ativo}.SA", session=sessao_yf)
-            df_novo = ticker.history(period="2y", interval="1d")
+            df_novo = ticker.history(period="5y", interval="1d")
             
             if not df_novo.empty:
                 df_novo.index = pd.to_datetime(df_novo.index, utc=True).tz_localize(None)
                 df_novo.columns = [str(c).strip().capitalize() for c in df_novo.columns]
-                # Sobrescreve o arquivo para manter a fidelidade quantitativa
                 df_novo.to_csv(nome_arquivo)
                 
-            # Pausa cirúrgica de 0.5s: Dá ~50 segundos para baixar 100 ativos. Extremamente seguro.
             time.sleep(0.5) 
         except Exception as e:
             registrar_log(f"Erro ao descarregar {ativo}", erro=True)
@@ -179,7 +184,6 @@ if __name__ == "__main__":
     
     if ERROS_REGISTRADOS > 15:
         registrar_log(f"🚨 ALERTA CRÍTICO: {ERROS_REGISTRADOS} falhas de extração detectadas.", erro=True)
-        # O sys.exit(1) força o GitHub Actions a reportar "Failed" (ícone vermelho) para que você seja alertado.
         sys.exit(1)
         
     registrar_log("=== TURNO CONCLUÍDO. BUNKER ABASTECIDO. ===")

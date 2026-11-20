@@ -58,6 +58,38 @@ def _eh_futuro(ativo_limpo):
     return ativo_limpo.startswith(("WIN", "WDO"))
 
 
+def sanitizar_ohlc(df):
+    """
+    Corrige barras com Open, High ou Low zerados/NaN usando o Close válido
+    e garante consistência geométrica da vela (High >= Open/Close e Low <= Open/Close).
+    """
+    if df is None or df.empty:
+        return df
+
+    df = df.copy()
+    for col in COLUNAS_OHLC:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    df = df[df["Close"].notna() & (df["Close"] > 0)].copy()
+    if df.empty:
+        return df
+
+    mask_open = df["Open"].isna() | (df["Open"] <= 0)
+    df.loc[mask_open, "Open"] = df.loc[mask_open, "Close"]
+
+    mask_high = df["High"].isna() | (df["High"] <= 0)
+    df.loc[mask_high, "High"] = df.loc[mask_high, ["Open", "Close"]].max(axis=1)
+
+    mask_low = df["Low"].isna() | (df["Low"] <= 0)
+    df.loc[mask_low, "Low"] = df.loc[mask_low, ["Open", "Close"]].min(axis=1)
+
+    df["High"] = df[["Open", "High", "Close"]].max(axis=1)
+    df["Low"] = df[["Open", "Low", "Close"]].min(axis=1)
+
+    return df
+
+
 # ============================================================
 # LEITURA DO CSV
 # ============================================================
@@ -98,7 +130,9 @@ def _ler_csv(caminho, ativo_limpo):
     df.index = pd.to_datetime(df.index, utc=True, errors="coerce", dayfirst=dayfirst).tz_localize(None)
     df = df[~df.index.isna()]
     df = df[~df.index.duplicated(keep="last")].sort_index()
-    df = df[COLUNAS_OHLC + ["Volume"]].apply(pd.to_numeric, errors="coerce").dropna(subset=COLUNAS_OHLC)
+    df = df[COLUNAS_OHLC + ["Volume"]].apply(pd.to_numeric, errors="coerce").dropna(subset=["Close"])
+    df["Volume"] = df["Volume"].fillna(0.0)
+    df = sanitizar_ohlc(df)
 
     # Diário: o robô grava em UTC (00:00-03:00 vira 03:00). Se há 1 barra por dia, fica só a data.
     if df.index.normalize().is_unique:

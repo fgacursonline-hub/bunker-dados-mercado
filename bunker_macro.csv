@@ -1,25 +1,25 @@
 nome,valor,variacao,url,help
 IBOVESPA,"pts 164,796",-0.9498821437627925,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AIBOV,
-Mini Índice,"pts 166,195",-0.8773394725227535,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWIN1%21,
-Mini Dólar,R$ 5937.00,0.21856661622823292,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWDO1%21,
+Mini Índice,"pts 166,206",-0.870778810253714,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWIN1%21,
+Mini Dólar,R$ 5936.09,0.20322238899996847,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWDO1%21,
 Juros BR (DI1),% 14.637,-1.2881035878068436,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3ADI11%21,
 EWZ (ETF Brasil),$ 29.24,2.4526979677645278,https://br.tradingview.com/chart/?symbol=AMEX%3AEWZ,
-Minério de Ferro,$ 88.85,0.0,https://br.tradingview.com/chart/?symbol=SGX%3AFEF2%21,
+Minério de Ferro,$ 89.05,0.22509848058525073,https://br.tradingview.com/chart/?symbol=SGX%3AFEF2%21,
 Petróleo Brent,$ 89.37,-3.4568434698066253,https://br.tradingview.com/chart/?symbol=ICEEUR%3ABRN1%21,
-Ouro (Spot),$ 3636.43,2.7765648206637072,https://br.tradingview.com/chart/?symbol=OANDA%3AXAUUSD,
-Bitcoin (BTC),"$ 61,349",0.29352839770766526,https://br.tradingview.com/chart/?symbol=BITSTAMP%3ABTCUSD,
+Ouro (Spot),$ 3666.77,0.8796919771266287,https://br.tradingview.com/chart/?symbol=OANDA%3AXAUUSD,
+Bitcoin (BTC),"$ 61,220",0.01744832322920775,https://br.tradingview.com/chart/?symbol=BITSTAMP%3ABTCUSD,
 Índice VIX (Medo),pts 26.62,-25.828921705210362,https://br.tradingview.com/chart/?symbol=CBOE%3AVIX,"**VIX Americano (S&P 500)**
 
 • **Menos de 20 pontos:** Baixa volatilidade. Céu limpo.
 • **20 a 30 pontos:** Média volatilidade. Cautela.
 • **Acima de 30 pontos:** Pânico. Risco alto."
-Treasury 10Y (EUA),% 4.936,-0.28282828282828465,https://br.tradingview.com/chart/?symbol=TVC%3AUS10Y,"**Títulos do Tesouro dos EUA (10 Anos)**
+Treasury 10Y (EUA),% 4.940,-0.040469445568591667,https://br.tradingview.com/chart/?symbol=TVC%3AUS10Y,"**Títulos do Tesouro dos EUA (10 Anos)**
 Se a taxa subir muito, o capital foge do Brasil para os EUA (Renda Fixa segura), derrubando a nossa bolsa."
-DXY (Índice Dólar),pts 104.33,0.46802773497687244,https://br.tradingview.com/chart/?symbol=TVC%3ADXY,"**Força Global do Dólar**
+DXY (Índice Dólar),pts 104.27,-0.04984758143368184,https://br.tradingview.com/chart/?symbol=TVC%3ADXY,"**Força Global do Dólar**
 Índice do Dólar contra moedas fortes. DXY em alta significa Dólar ganhando poder, o que afunda as commodities e pressiona mercados emergentes."
-S&P 500 (CFD),"pts 7,251.60",4.353081694032324,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS500,"**S&P 500 (SPX)**
+S&P 500 (CFD),"pts 7,257.90",0.05790148475950385,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS500,"**S&P 500 (SPX)**
 O termômetro chefe do mundo. Indica o humor e a tendência do apetite a risco do mercado global antes mesmo de Nova York abrir."
-Nasdaq (CFD),"pts 26,751.00",6.06931717703596,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS100,"**Nasdaq (NDX)**
+Nasdaq (CFD),"pts 26,791.30",0.09938463722738433,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS100,"**Nasdaq (NDX)**
 Bolsa de tecnologia. Fortemente penalizada quando o Treasury 10Y sobe. É o motor da especulação de Wall Street."
 VIX Brasil (VXEWZ),pts 35.86,-7.194616977225676,https://br.tradingview.com/chart/?symbol=CBOE%3AVXEWZ,"**Leitura Tática de Cenário (VIX Brasil):**
 

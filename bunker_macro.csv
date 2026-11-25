@@ -1,27 +1,27 @@
 nome,valor,variacao,url,help
-IBOVESPA,"pts 164,664",0.3501558079688216,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AIBOV,
-Mini Índice,"pts 165,855",0.2769094965446861,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWIN1%21,
-Mini Dólar,R$ 5867.50,-0.6386054621926318,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWDO1%21,
-Juros BR (DI1),% 14.365,-0.5056101953179182,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3ADI11%21,
-EWZ (ETF Brasil),$ 29.55,0.8532423208191142,https://br.tradingview.com/chart/?symbol=AMEX%3AEWZ,
-Minério de Ferro,$ 88.85,-0.16853932584269815,https://br.tradingview.com/chart/?symbol=SGX%3AFEF2%21,
-Petróleo Brent,$ 89.72,1.0587970263572943,https://br.tradingview.com/chart/?symbol=ICEEUR%3ABRN1%21,
-Ouro (Spot),$ 3459.86,-2.713585360332804,https://br.tradingview.com/chart/?symbol=OANDA%3AXAUUSD,
-Bitcoin (BTC),"$ 58,510",-2.0645760626679,https://br.tradingview.com/chart/?symbol=BITSTAMP%3ABTCUSD,
-Índice VIX (Medo),pts 33.88,28.52807283763279,https://br.tradingview.com/chart/?symbol=CBOE%3AVIX,"**VIX Americano (S&P 500)**
+IBOVESPA,"pts 166,028",1.1809203752505937,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AIBOV,
+Mini Índice,"pts 167,235",1.1112656215046313,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWIN1%21,
+Mini Dólar,R$ 5823.00,-1.392177180459775,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3AWDO1%21,
+Juros BR (DI1),% 14.325,-0.782656877683896,https://br.tradingview.com/chart/?symbol=BMFBOVESPA%3ADI11%21,
+EWZ (ETF Brasil),$ 30.00,2.372013651877136,https://br.tradingview.com/chart/?symbol=AMEX%3AEWZ,
+Minério de Ferro,$ 89.05,0.05617977528089568,https://br.tradingview.com/chart/?symbol=SGX%3AFEF2%21,
+Petróleo Brent,$ 90.13,1.5206127506194989,https://br.tradingview.com/chart/?symbol=ICEEUR%3ABRN1%21,
+Ouro (Spot),$ 3498.36,-1.631019313259452,https://br.tradingview.com/chart/?symbol=OANDA%3AXAUUSD,
+Bitcoin (BTC),"$ 59,330",-0.6921255031928197,https://br.tradingview.com/chart/?symbol=BITSTAMP%3ABTCUSD,
+Índice VIX (Medo),pts 30.23,14.681335356600922,https://br.tradingview.com/chart/?symbol=CBOE%3AVIX,"**VIX Americano (S&P 500)**
 
 • **Menos de 20 pontos:** Baixa volatilidade. Céu limpo.
 • **20 a 30 pontos:** Média volatilidade. Cautela.
 • **Acima de 30 pontos:** Pânico. Risco alto."
-Treasury 10Y (EUA),% 4.816,-2.2727272727272707,https://br.tradingview.com/chart/?symbol=TVC%3AUS10Y,"**Títulos do Tesouro dos EUA (10 Anos)**
+Treasury 10Y (EUA),% 4.832,-1.9480519480519543,https://br.tradingview.com/chart/?symbol=TVC%3AUS10Y,"**Títulos do Tesouro dos EUA (10 Anos)**
 Se a taxa subir muito, o capital foge do Brasil para os EUA (Renda Fixa segura), derrubando a nossa bolsa."
-DXY (Índice Dólar),pts 103.90,0.049110238040217524,https://br.tradingview.com/chart/?symbol=TVC%3ADXY,"**Força Global do Dólar**
+DXY (Índice Dólar),pts 103.62,-0.22147754410292153,https://br.tradingview.com/chart/?symbol=TVC%3ADXY,"**Força Global do Dólar**
 Índice do Dólar contra moedas fortes. DXY em alta significa Dólar ganhando poder, o que afunda as commodities e pressiona mercados emergentes."
-S&P 500 (CFD),"pts 7,004.60",-2.6395162971714403,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS500,"**S&P 500 (SPX)**
+S&P 500 (CFD),"pts 7,093.80",-1.3996803113489498,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS500,"**S&P 500 (SPX)**
 O termômetro chefe do mundo. Indica o humor e a tendência do apetite a risco do mercado global antes mesmo de Nova York abrir."
-Nasdaq (CFD),"pts 25,076.40",-4.288184306046972,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS100,"**Nasdaq (NDX)**
+Nasdaq (CFD),"pts 25,502.90",-2.6603154973874,https://br.tradingview.com/chart/?symbol=CAPITALCOM%3AUS100,"**Nasdaq (NDX)**
 Bolsa de tecnologia. Fortemente penalizada quando o Treasury 10Y sobe. É o motor da especulação de Wall Street."
-VIX Brasil (VXEWZ),pts 38.16,2.635825712748785,https://br.tradingview.com/chart/?symbol=CBOE%3AVXEWZ,"**Leitura Tática de Cenário (VIX Brasil):**
+VIX Brasil (VXEWZ),pts 39.72,6.831629908552994,https://br.tradingview.com/chart/?symbol=CBOE%3AVXEWZ,"**Leitura Tática de Cenário (VIX Brasil):**
 
 • **IBOV caindo + VIX Brasil subindo:** Alerta de risco
 • **IBOV subindo + VIX Brasil caindo:** Ambiente mais favorável
